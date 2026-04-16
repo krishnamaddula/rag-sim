@@ -13,7 +13,7 @@ const NAV = [
   { id: "scenarios", label: "Simulator", icon: "⚙️" },
   { id: "interview", label: "Interview Prep", icon: "🎯" },
   { id: "comparison", label: "Compare", icon: "📊" },
-  { id: "evaluation", label: "Eval Lab", icon: "🧬" },
+  { id: "evaluation", label: "Eval Lab", icon: "🧬", disabled: true },
 ];
 
 export default function App() {
@@ -52,15 +52,20 @@ export default function App() {
             {NAV.map((n) => (
               <button
                 key={n.id}
-                onClick={() => navigateTo(n.id)}
+                onClick={() => !n.disabled && navigateTo(n.id)}
+                disabled={n.disabled}
+                title={n.disabled ? "Coming soon" : undefined}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                  page === n.id || (page === "technique-detail" && n.id === "techniques")
+                  n.disabled
+                    ? "text-slate-600 cursor-not-allowed opacity-50"
+                    : page === n.id || (page === "technique-detail" && n.id === "techniques")
                     ? "bg-indigo-600 text-white"
                     : "text-slate-400 hover:text-slate-100 hover:bg-slate-800"
                 }`}
               >
                 <span>{n.icon}</span>
                 {n.label}
+                {n.disabled && <span className="text-[10px] leading-none ml-0.5">(soon)</span>}
               </button>
             ))}
           </nav>
@@ -80,14 +85,19 @@ export default function App() {
             {NAV.map((n) => (
               <button
                 key={n.id}
-                onClick={() => navigateTo(n.id)}
+                onClick={() => !n.disabled && navigateTo(n.id)}
+                disabled={n.disabled}
+                title={n.disabled ? "Coming soon" : undefined}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium flex items-center gap-2 ${
-                  page === n.id
+                  n.disabled
+                    ? "text-slate-600 cursor-not-allowed opacity-50"
+                    : page === n.id
                     ? "bg-indigo-600 text-white"
                     : "text-slate-400 hover:text-slate-100"
                 }`}
               >
                 {n.icon} {n.label}
+                {n.disabled && <span className="text-[10px] leading-none">(soon)</span>}
               </button>
             ))}
           </div>
