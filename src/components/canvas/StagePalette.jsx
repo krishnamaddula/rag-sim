@@ -2,7 +2,7 @@ import { useState } from "react";
 import { STAGES, STAGE_COLORS } from "../../data/ragStages";
 import { PATTERNS } from "../../data/architecturePatterns";
 
-export default function StagePalette({ activePattern, onTogglePattern, onInspect }) {
+export default function StagePalette({ activePattern, onTogglePattern, onInspect, onClose }) {
   const [expanded, setExpanded] = useState({}); // { stageId: bool }
 
   const toggleExpand = (e, stageId) => {
@@ -16,7 +16,20 @@ export default function StagePalette({ activePattern, onTogglePattern, onInspect
   };
 
   return (
-    <div className="w-56 flex-shrink-0 flex flex-col bg-slate-950/80 border-r border-slate-800 overflow-y-auto">
+    <div className="w-64 md:w-56 flex-shrink-0 flex flex-col bg-slate-950 border-r border-slate-800 overflow-y-auto h-full">
+      {/* Mobile header with close button */}
+      {onClose && (
+        <div className="flex items-center justify-between px-3 py-2.5 border-b border-slate-800 flex-shrink-0">
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-400">Pipeline Builder</span>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Stages section */}
       <div className="px-3 pt-3 pb-1">
         <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2 px-1">
@@ -44,7 +57,7 @@ export default function StagePalette({ activePattern, onTogglePattern, onInspect
                   <div
                     draggable
                     onDragStart={(e) => onDragStart(e, stage.id)}
-                    className="flex items-center gap-1.5 flex-1 min-w-0 cursor-grab active:cursor-grabbing"
+                    className="flex items-center gap-1.5 flex-1 min-w-0 cursor-grab active:cursor-grabbing py-0.5"
                     title="Drag onto canvas"
                   >
                     <span className="text-slate-700 text-xs flex-shrink-0">⠿</span>

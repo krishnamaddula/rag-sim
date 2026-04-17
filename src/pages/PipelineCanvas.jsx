@@ -16,6 +16,7 @@ import {
 import { STAGES_BY_ID, STAGE_COLORS } from "../data/ragStages";
 import { PATTERNS_BY_ID } from "../data/architecturePatterns";
 import { EXAMPLE_PIPELINES } from "../data/examplePipelines";
+import { useIsMobile } from "../hooks/useIsMobile";
 
 import StageNode from "../components/canvas/StageNode";
 import StagePalette from "../components/canvas/StagePalette";
@@ -158,12 +159,14 @@ function CanvasInner({ nodes, setNodes, edges, setEdges, onNodesChange, onEdgesC
 }
 
 export default function PipelineCanvas() {
+  const isMobile = useIsMobile();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [activePattern, setActivePattern] = useState(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [inspectedTech, setInspectedTech] = useState(null); // { tech, stage }
   const [loadedMsg, setLoadedMsg] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const togglePattern = (patternId) => {
     setActivePattern(prev => prev === patternId ? null : patternId);
@@ -194,7 +197,16 @@ export default function PipelineCanvas() {
     <div className="-mx-4 sm:-mx-6 -my-8 flex flex-col overflow-hidden" style={{ height: "calc(100vh - 56px)" }}>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-4 py-2 bg-slate-950/90 border-b border-slate-800 flex-shrink-0 z-10">
+      <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-slate-950/90 border-b border-slate-800 flex-shrink-0 z-10">
+        {/* Mobile sidebar toggle */}
+        <button
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors flex-shrink-0"
+          onClick={() => setSidebarOpen(prev => !prev)}
+          title="Toggle sidebar"
+        >
+          <span className="text-sm">☰</span>
+        </button>
+
         {/* Template selector */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 hidden sm:block">Load:</span>
@@ -203,7 +215,7 @@ export default function PipelineCanvas() {
             defaultValue=""
             className="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-indigo-600"
           >
-            <option value="" disabled>📋 Example pipeline…</option>
+            <option value="" disabled>📋 Example…</option>
             {EXAMPLE_PIPELINES.map(tpl => (
               <option key={tpl.id} value={tpl.id}>
                 {tpl.name} ({tpl.badge})
@@ -214,7 +226,7 @@ export default function PipelineCanvas() {
 
         {/* Loaded message */}
         {loadedMsg && (
-          <span className="text-xs text-emerald-400 animate-fade-in">{loadedMsg}</span>
+          <span className="text-xs text-emerald-400 animate-fade-in hidden sm:block">{loadedMsg}</span>
         )}
 
         <div className="flex-1" />
@@ -222,7 +234,7 @@ export default function PipelineCanvas() {
         {/* Active pattern badge */}
         {activePattern && (
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
             style={{
               background: PATTERNS_BY_ID[activePattern]?.color + "20",
               color: PATTERNS_BY_ID[activePattern]?.color,
@@ -247,26 +259,45 @@ export default function PipelineCanvas() {
         {/* Analyze */}
         <button
           onClick={() => setShowAnalysis(prev => !prev)}
-          className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
             showAnalysis
               ? "bg-indigo-700 text-white"
               : "bg-indigo-600 hover:bg-indigo-500 text-white"
           }`}
         >
           <span>📊</span>
-          <span>Analyze Pipeline</span>
+          <span className="hidden sm:inline">Analyze Pipeline</span>
+          <span className="sm:hidden">Analyze</span>
         </button>
       </div>
 
       {/* Main body */}
       <div className="flex flex-1 overflow-hidden">
         <ReactFlowProvider>
-          {/* Left sidebar */}
-          <StagePalette
-            activePattern={activePattern}
-            onTogglePattern={togglePattern}
-            onInspect={(tech, stage) => setInspectedTech({ tech, stage })}
-          />
+          {/* Mobile sidebar backdrop */}
+          {isMobile && sidebarOpen && (
+            <div
+              className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
+          {/* Left sidebar — always visible on desktop, overlay on mobile */}
+          <div
+            className={`
+              ${isMobile
+                ? `fixed inset-y-0 left-0 z-40 transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`
+                : "relative"
+              }
+            `}
+          >
+            <StagePalette
+              activePattern={activePattern}
+              onTogglePattern={togglePattern}
+              onInspect={(tech, stage) => { setInspectedTech({ tech, stage }); if (isMobile) setSidebarOpen(false); }}
+              onClose={isMobile ? () => setSidebarOpen(false) : undefined}
+            />
+          </div>
 
           {/* Canvas + overlays */}
           <div className="flex-1 relative overflow-hidden flex flex-col">
@@ -279,9 +310,11 @@ export default function PipelineCanvas() {
             {/* Empty state */}
             {nodes.length === 0 && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-                <div className="text-center space-y-2">
+                <div className="text-center space-y-2 px-6">
                   <div className="text-4xl">🔗</div>
-                  <div className="text-slate-500 text-sm font-medium">Drag stages from the sidebar to build your pipeline</div>
+                  <div className="text-slate-500 text-sm font-medium">
+                    {isMobile ? "Tap ☰ to open the sidebar and add stages" : "Drag stages from the sidebar to build your pipeline"}
+                  </div>
                   <div className="text-slate-700 text-xs">or load an example from the toolbar above</div>
                 </div>
               </div>
@@ -300,12 +333,13 @@ export default function PipelineCanvas() {
                 setInspectedTech={setInspectedTech}
               />
 
-              {/* Technique detail panel */}
+              {/* Technique detail panel — right side on desktop, bottom sheet on mobile */}
               {inspectedTech && (
                 <TechniqueDetailPanel
                   tech={inspectedTech.tech}
                   stage={inspectedTech.stage}
                   onClose={() => setInspectedTech(null)}
+                  isMobile={isMobile}
                 />
               )}
             </div>
@@ -316,6 +350,7 @@ export default function PipelineCanvas() {
                 nodes={nodes}
                 activePatternId={activePattern}
                 onClose={() => setShowAnalysis(false)}
+                isMobile={isMobile}
               />
             )}
           </div>

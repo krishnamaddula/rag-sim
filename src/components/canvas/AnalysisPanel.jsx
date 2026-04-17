@@ -131,7 +131,7 @@ function CompareCard({ result }) {
   );
 }
 
-export default function AnalysisPanel({ nodes, activePatternId, onClose }) {
+export default function AnalysisPanel({ nodes, activePatternId, onClose, isMobile }) {
   const [activeTab, setActiveTab] = useState("explain");
 
   const scores = scorePipeline(nodes, activePatternId);
@@ -141,12 +141,25 @@ export default function AnalysisPanel({ nodes, activePatternId, onClose }) {
 
   const techCount = nodes.reduce((s, n) => s + (n.data.activeTechniques?.length || 0), 0);
 
+  const panelClass = isMobile
+    ? "fixed inset-x-0 bottom-0 z-30 flex flex-col border-t-2 border-indigo-600 bg-slate-950 animate-slide-in-up rounded-t-2xl"
+    : "h-80 flex flex-col border-t border-slate-800 bg-slate-950 animate-slide-in-up";
+
+  const panelStyle = isMobile ? { maxHeight: "72vh" } : {};
+
   return (
-    <div className="h-80 flex flex-col border-t border-slate-800 bg-slate-950 animate-slide-in-up">
+    <div className={panelClass} style={panelStyle}>
+      {/* Mobile drag handle */}
+      {isMobile && (
+        <div className="flex justify-center pt-2 pb-0 flex-shrink-0">
+          <div className="w-10 h-1 rounded-full bg-slate-700" />
+        </div>
+      )}
+
       {/* Panel header */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-slate-800 flex-shrink-0">
-        <span className="text-sm font-bold text-white">Pipeline Analysis</span>
-        <span className="text-xs text-slate-600">{nodes.length} stages · {techCount} techniques</span>
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-slate-800 flex-shrink-0">
+        <span className="text-sm font-bold text-white">Analysis</span>
+        <span className="text-xs text-slate-600 hidden sm:block">{nodes.length} stages · {techCount} techniques</span>
         <div className="flex-1" />
 
         {/* Tab bar */}
@@ -155,7 +168,7 @@ export default function AnalysisPanel({ nodes, activePatternId, onClose }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 activeTab === tab.id
                   ? "bg-indigo-600 text-white shadow-lg"
                   : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/60"
@@ -169,7 +182,7 @@ export default function AnalysisPanel({ nodes, activePatternId, onClose }) {
 
         <button
           onClick={onClose}
-          className="text-slate-500 hover:text-slate-200 ml-2 text-lg leading-none"
+          className="text-slate-500 hover:text-slate-200 ml-2 text-lg leading-none w-8 h-8 flex items-center justify-center"
         >
           ×
         </button>
