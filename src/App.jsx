@@ -6,6 +6,7 @@ import InterviewPrep from "./pages/InterviewPrep";
 import ScenarioSimulator from "./pages/ScenarioSimulator";
 import ComparisonMatrix from "./pages/ComparisonMatrix";
 import EvaluationLab from "./pages/EvaluationLab";
+import PipelineCanvas from "./pages/PipelineCanvas";
 
 const NAV = [
   { id: "home", label: "Home", icon: "🏠" },
@@ -14,6 +15,7 @@ const NAV = [
   { id: "interview", label: "Interview Prep", icon: "🎯" },
   { id: "comparison", label: "Compare", icon: "📊" },
   { id: "evaluation", label: "Eval Lab", icon: "🧬", disabled: true },
+  { id: "pipeline", label: "Pipeline", icon: "🔗" },
 ];
 
 export default function App() {
@@ -128,6 +130,8 @@ export default function App() {
         {page === "comparison" && <ComparisonMatrix />}
 
         {page === "evaluation" && <EvaluationLab />}
+
+        {page === "pipeline" && <PipelineCanvas />}
       </main>
 
       {/* Footer */}
